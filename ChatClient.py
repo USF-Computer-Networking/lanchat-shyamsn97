@@ -176,26 +176,30 @@ def chat(df,sock,arp):
 				inp = input("Invalid! Press 1 to send another message or 0 to return: ")
 
 
-def client():
+def client(scanbool,discov):
 
 	print("Performing Arp...")
-	try:
-		ipdf = discover('arp','-n')
-		df = discover('arp','')
+	if discov == True:
+		try:
+			ipdf = discover('arp','-n')
+			df = discover('arp','')
 
-		name = df.ix[:,0]
+			name = df.ix[:,0]
 
-		ipdf["Name"] = name
+			ipdf["Name"] = name
 
-		print("Peers found by arp:")
-	except:
-		ipdf = "No peers found"
+			print("Peers found by arp:")
+		except:
+			ipdf = "No peers found"
 
-	print(ipdf)
-	print("Scanning for IP's and ports..")
-
-	tupleips = scan()
-
+		print(ipdf)
+		print("Scanning for IP's and ports..")
+	else:
+		ipdf = "None"
+	if scanbool == True:
+		tupleips = scan()
+	else:
+		tupleips = "None"
 	print("Peers (IP,PORT) found by scan: ")	
 	print(tupleips)
 
@@ -275,12 +279,43 @@ parser=argparse.ArgumentParser( #help
     2) Scans for peers, this may take some time'\n'
     3) Prompts the user to set the port of the socket(or use the default at 23432)'\n'
     4) prompts user to start a chat(either unicast or broadcast), listen for incoming messages, or just exit the program'\n
+    5) don't pass anything to run normally'\n
      ''', 
     )
-args=parser.parse_args()
 
-#run
-client()
+parser.add_argument('-a', action="store_true", default=False,help='perform arp to find ips with names of devices')
+parser.add_argument('-an', action="store_true", default=False,help='perform arp to find ips')
+parser.add_argument('-c', action="store", dest="c", type=int,help='multiply integer by 200')
+parser.add_argument('-ds',  action="store_true", default=False,help='start chat with just discover')
+parser.add_argument('-s',  action="store_true", default=False,help='start chat with just scan')
+parser.add_argument('-hello',  action="store_true", default=False,help='Say Hello!')
+parser.add_argument('-p', action="store", dest="p", type=int,help='Set a port')
+
+args=parser.parse_args()
+if(args.a == True):
+	print(discover('arp',''))
+if(args.an == True):
+	print(discover('arp','-n'))
+if(args.c):
+	print(args.c*200)
+if(args.ds == True):
+	client(False,True)
+if(args.s == True):
+	client(True,False)
+if(args.hello == True):
+	print("Hey what's up!")
+if(args.p):
+	s = socket(AF_INET, SOCK_DGRAM) #initialize socket
+	s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1) #add broadcasting
+	s.bind(('',args.p))
+	print("New socket bound to port: " + str(args.p))
+if not len(sys.argv) > 1:
+	client(True,True)
+
+
+
+
+
 
 
 
